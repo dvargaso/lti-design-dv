@@ -49,60 +49,135 @@ Output format: MD
 
 
 
-# Prompt:  Explanation of the main functions
-
-# ATS MVP Briefing — Main Functions
-
-The ATS MVP is designed to manage the hiring process end to end for a small business: from creating job openings and collecting applications to tracking candidates, coordinating interviews, gathering feedback, and recording final hiring decisions.
-
-## 1. Job management and publishing
-
-The system allows internal users to create and manage job openings, assign key owners, and publish jobs to the **ATS-managed public careers page**. Publishing is intentionally limited to that single public careers surface; external posting channels are not part of the MVP.
-
-## 2. Candidate application intake
-
-Candidates can browse open jobs, view job details, and submit applications through the public apply form. The system captures core applicant data and CV/resume submission, then brings that information into the internal hiring workflow. There is no candidate portal or post-application self-service in MVP.
-
-## 3. Candidate and application record management
-
-The product stores **candidate profiles** separately from **job application records**. Candidate profiles hold stable person-level data, while applications hold job-specific process data such as stage, status, feedback history, assigned owners, and next action ownership. This separation keeps hiring operations structured and reduces confusion across multiple applications.
-
-## 4. Pipeline tracking and workflow control
-
-A core function of the ATS MVP is moving candidates through **one fixed hiring pipeline** shared across all jobs. The system tracks where each candidate is in the process, who is responsible for the next step, and what action is required next. Pipeline stages are used for active workflow steps, while final outcomes are tracked through application status.
-
-## 5. Interview scheduling and tracking
-
-Recruiters can create and maintain interview records inside the ATS, including interview type, date/time, interviewer, format, location or meeting link, and status. The system tracks interviews operationally, but calendar sync, automated invites, interviewer availability logic, and self-scheduling are out of scope for MVP.
-
-## 6. Feedback and evaluation capture
-
-The product supports structured feedback collection using a standard feedback format. Interviewers and hiring managers can record recommendations, ratings, strengths, concerns, comments, and confidence. This gives the team a consistent way to evaluate candidates across the hiring flow.
-
-## 7. Communication logging and follow-up tracking
-
-The ATS MVP logs hiring-related communication as an internal timeline of interactions and notes, such as emails sent, calls made, interview invites, and message notes. It also supports basic follow-up tracking. This is logging only, not outbound communication automation.
-
-## 8. Offer and final decision handling
-
-The system includes **basic offer management** and final hiring decision recording. Offer handling is intentionally lightweight, and final outcomes such as hired, rejected, withdrawn, or closed are recorded at the application level. Decision ownership and status recording are clearly separated in the workflow.
-
-## 9. Operational visibility for daily hiring work
-
-The landing view is designed to support day-to-day execution, not analytics. Its main purpose is to show which candidates need action, what the next required action is, who owns it, what interviews are coming up, which applications are recent, and which jobs are open.
-
-## Summary
-
-In practical terms, the main functions of the ATS MVP are to:
-
-* manage job openings
-* collect candidate applications
-* maintain candidate and application records
-* track candidates through a fixed hiring pipeline
-* schedule and track interviews
-* collect structured feedback
-* log communication and follow-ups
-* record offers and final decisions
-* surface next actions clearly for the hiring team 
+## Prompt:  Explanation of the main functions
 
 
+Role: You are a senior product manager. You have deep wide expertise in the recruiting process for small companies. 
+
+Context:
+A whole product ideation was captured and refined  for the ATS MVP product and it was captured in the  "Context Final Reconciled.pdf". You must use all that information as the context for this task
+
+Task: Use all the product information to create  a Lean Canvas diagram  that clearly  explains the business model
+
+Output format: MD
+
+IMPORTANT: If there is any gaps in the information needed to prepare the diagram, ask them one by one and capture them in a "lean.md" Follow a simple structure to store the captured data
+
+
+## Prompt Use case diagrams
+
+You are a software product manager with solid understanding of SDLC and product palnning and documentation best practices.
+
+Context:
+A whole product ideation was captured and refined  for the ATS MVP product and it was captured in the  "Context Final Reconciled.pdf". You must use all that information as the context for this task.
+That document contains detailed design decision for ATS MCP.
+
+We are gonna narrow the focus in three key use cases:
+
+- Create and manage job openings
+- Collect candidate applications from the public careers page
+- Review and screen applications
+
+For each of the use cases  above follow these steps to create a use case diagram in MD format
+
+Load source of truth
+Read only Context Final Reconciled.pdf and treat it as the exclusive source for roles, scope, workflows, constraints, and terminology.
+Parse the requested use case
+Extract the exact use case name and identify the primary user goal it represents using the document’s approved language.
+Locate matching context
+Find the sections that directly govern that use case, such as user roles, pipeline stages, product functions, scope limits, access rules, and relevant records or statuses.
+Identify actors
+List only the actors explicitly supported by the context for that use case, including internal roles and the external candidate only where the document allows it.
+Define system interactions
+Convert the matched context into the specific interactions the actors perform with the ATS, excluding any action that is out of MVP scope or handled manually outside the system.
+Check for critical gaps
+If a required element for the diagram cannot be resolved from the context, stop and ask that gap as a single explicit question before generating the diagram.
+Build the diagram structure
+Organize the result into a Markdown use case diagram format with a system boundary, actors, use cases, and clear relationships between them.
+Validate against scope
+Verify that every actor, action, and relationship is consistent with the fixed MVP scope, access model, and standard hiring flow in the document.
+Generate the final MD output
+Output only the Markdown diagram plus, if needed, a short “Critical gaps asked” section listing any unanswered blocker questions.
+
+Produce a brief description of each of those three use cases
+
+## Data model
+
+# Role
+You are a senior software solutions architect with deep expertise in HR systems, recruiting workflows, and relational data modeling.
+
+# Context
+Use only **"Context Final Reconciled.pdf"** as the source of truth for scope, terminology, entities, fields, rules, statuses, ownership, workflow boundaries, and relationships.
+Use standard data modeling best practices only for naming, normalization, keys, attribute typing, and relationship structure.
+Do not use best practices to introduce unsupported scope or concepts.
+Do not use the governance log unless explicitly requested.
+
+# Task
+Produce the ATS MVP data model as **ER Mermaid in Markdown**.
+Include only:
+- entities
+- attributes
+- attribute types
+- relationships
+
+Do not include explanations, notes, reasoning, assumptions, validation text, or any content outside the diagram.
+
+# Output format
+Return **exactly one fenced `mermaid` code block** using **`erDiagram`** syntax only.
+Output must be **ER Mermaid in Markdown only**.
+No text before or after the Mermaid block.
+
+# Modeling rules
+- Model the **minimum complete set of entities** required by the PDF.
+- Use a true **entity-by-entity** process.
+- Fully define one entity before moving to the next.
+- Add only attributes that are explicit in the PDF or strictly required by an explicit rule or relationship.
+- Use only these types: `string`, `text`, `integer`, `boolean`, `date`, `datetime`, `enum`, `file`, `reference`.
+- Add relationships only after all entities are fully defined.
+
+# Mandatory distinctions
+Do not merge:
+- candidate profile vs job application
+- job opening status vs application status
+- pipeline stage vs final outcome
+- offer state vs application status
+- communication history vs audit trail
+- workflow ownership concepts vs access scope concepts
+
+# Scope limits
+Do not add entities or structures for integrations, candidate portal, analytics/reporting, advanced scheduling, multi-tenant design, user administration, complex approvals, or external messaging automation.
+
+# Internal step-by-step approach
+1. Read the PDF and extract only data-model-relevant information.
+2. Identify the minimum required entity list.
+3. Define each entity one at a time:
+    - entity name
+    - purpose
+    - attributes
+    - attribute types
+4. Validate each entity against the PDF before moving to the next.
+5. After all entities are complete, add relationships.
+6. Remove anything unsupported by the PDF.
+7. Correct any merged concepts that must remain separate.
+8. Return the final answer as one Mermaid `erDiagram` block only.
+
+# Internal validation
+Before finalizing, verify:
+- every entity was defined before relationships were added
+- candidate and application are separate
+- stages are not modeled as final statuses
+- offer state is not merged into application status
+- interview records belong only to the Interview stage
+- Recruiter Screen and Hiring Manager Review are not interview record types
+- communication history and audit trail are separate
+- ownership terms remain distinct where relevant
+- same-job reapplication does not imply a second active application pattern
+- job closure behavior can be supported
+- no out-of-scope feature appears
+- the final answer is exactly one Mermaid ER block and nothing else
+
+# Critical gap rule
+If a required modeling decision cannot be resolved from the PDF, ask only the minimum blocking question, one at a time.
+
+# Final output constraint
+Any content outside the single Markdown fenced `mermaid` block is invalid and must be removed before responding.
