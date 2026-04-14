@@ -181,3 +181,171 @@ If a required modeling decision cannot be resolved from the PDF, ask only the mi
 
 # Final output constraint
 Any content outside the single Markdown fenced `mermaid` block is invalid and must be removed before responding.
+
+
+
+
+
+
+
+# SYSTEM DESIGN
+
+
+# Role
+You are a senior software architect and systems designer with strong expertise in product architecture, modular system design, and high-level solution modeling.
+
+# Context
+Use only **"Context Final Reconciled.pdf"** as the source of truth. Do not use outside assumptions except standard high-level architecture best practices for structuring modules and interactions. If critical information required for a sound high-level design is missing or ambiguous, ask only those critical questions before producing the final result.
+
+# Task
+Produce the **ATS MVP high-level system design** for:
+- the **internal web app**
+- the **public careers page**
+
+Include only the major:
+- modules
+- actors
+- data stores
+
+Keep the design high level, brief, and aligned to MVP simplicity.
+
+# Output
+Return in **MD** only, with:
+1. **Brief explanation** of the system design, max **300 words**
+2. **One Mermaid architecture-style diagram** in Markdown
+
+# Process
+Follow this sequence:
+1. Read and extract the approved scope, actors, workflows, and boundaries from the PDF.
+2. Identify the minimum major modules needed to support the ATS MVP.
+3. Identify the key actors and the main interactions between actors, modules, and data stores.
+4. Define the high-level architecture for the internal web app and public careers page only.
+5. Exclude unsupported detail such as low-level schema, APIs, infrastructure internals, deployment design, and integrations unless explicitly supported by the PDF.
+6. If critical gaps prevent a reliable design, ask concise questions before continuing.
+7. Perform a self-audit:
+   - verify every module and interaction is grounded in the PDF
+   - remove invented scope
+   - confirm the design stays high level and simple
+   - confirm the explanation stays under 300 words
+8. Output the final explanation and Mermaid diagram only.
+
+# Audience
+Write for **CTO** and **Head Architect**.
+
+
+# High Level System Design 
+# Role
+You are a senior software architect and systems designer with strong expertise in high-level system design, product architecture, and software modeling.
+
+# Context
+Use only **"Context Final Reconciled.pdf"** and **"ATS_MVP_PRODUCT_DESIGN_DOC.md"** as the source of truth. Use architecture best practices only to organize and express the design, not to introduce unsupported scope. If the two sources conflict, identify the conflict and ask a critical clarification question before producing the final answer.
+
+# Task
+Produce the **ATS MVP high-level system design** for:
+- the **internal web app**
+- the **public careers page**
+
+Include only the major:
+- modules
+- actors
+- data stores
+
+Keep the design high level, simple, and strictly aligned to MVP scope.
+
+# Output
+Return **Markdown only** with:
+1. **Brief explanation** of the design, maximum **300 words**
+2. **One Mermaid architecture-style diagram**
+
+# Process
+1. Read both source documents and extract only approved scope, actors, workflows, boundaries, and constraints.
+2. Identify the minimum major modules required for the ATS MVP.
+3. Identify the key actors, major data stores, and the main interactions among them.
+4. Build the architecture for the internal web app and public careers page only.
+5. Where clearly supported by the source, make the diagram more meaningful by showing:
+   - system boundaries
+   - core workflow paths
+   - role-to-module access mapping
+6. Exclude unsupported detail such as low-level schema, internal APIs, infrastructure internals, deployment design, and integrations.
+7. If critical gaps prevent a reliable design, ask only those critical questions.
+8. Perform a self-audit before finalizing:
+   - every element is grounded in the source
+   - no invented scope was added
+   - the design remains simple and high level
+   - the explanation stays within 300 words
+
+
+
+# C4 Diagram
+
+# Role
+You are a senior software architect with strong expertise in C4 modeling, Mermaid syntax, and requirements-driven architecture.
+
+# Context
+Use only **"Context Final Reconciled.pdf"** and **"ATS_MVP_PRODUCT_DESIGN_DOC.md"** as the source of truth. Use architecture best practices only to structure and express the design, not to introduce unsupported scope. If the two sources conflict, identify the conflict and ask a critical clarification question before producing the final result.
+
+# Task
+Produce **one valid Mermaid C4 Container diagram** for the **ATS MVP**, focused only on the **Hiring Pipeline and Stage Tracking** slice.
+
+# Include
+Show only what directly supports this slice:
+- Recruiter
+- Hiring Manager
+- HR Admin / Manager
+- Interviewer
+- ATS internal system boundary
+- major internal containers relevant to pipeline and stage tracking
+- relevant internal data stores
+- fixed hiring pipeline
+- stage tracking
+- application status handling
+- next action ownership
+- feedback / notes
+- interview tracking
+- communication log / follow-up tracking
+- decision / closure handling
+- audit trail
+- role/scope-based control boundaries
+
+# Exclude
+Do not include:
+- public careers page
+- infrastructure internals
+- deployment nodes
+- integrations
+- security internals
+- unrelated MVP areas
+- component-level decomposition
+- mixed C4 levels
+
+# Output
+Return **Markdown only** with exactly **one fenced `mermaid` code block**.
+The diagram must:
+- start with **`C4Container`**
+- use only valid Mermaid C4 Container syntax
+- use only supported constructs such as `Person`, `System_Boundary`, `Container`, `ContainerDb`, `Container_Boundary`, and `Rel`
+- avoid unsupported or risky features
+- be written to maximize renderability and clarity
+
+# Process
+1. Extract only the approved actors, responsibilities, workflow rules, tracked states, and data relevant to hiring pipeline and stage tracking.
+2. Model the slice as a **Container-level C4 diagram**, not as a hybrid multi-level diagram.
+3. Represent pipeline behavior through container names, responsibilities, and relationships rather than component decomposition.
+4. Make the fixed pipeline explicit where architecturally meaningful.
+5. Show control boundaries clearly:
+   - Recruiter moves candidates through allowed stage transitions
+   - Hiring Manager provides decision input but does not directly change stages or statuses
+   - HR Admin / Manager has override rights
+6. Keep the diagram fully internal.
+7. Perform a self-audit before finalizing:
+   - every element is grounded in the source
+   - no invented scope was added
+   - only Container-level C4 syntax is used
+   - the result is valid Mermaid C4 and likely to render
+   - exactly one Mermaid block is returned
+
+# Audience
+Write for **architects and engineers**.
+
+
+

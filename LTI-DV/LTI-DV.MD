@@ -239,3 +239,388 @@ flowchart LR
 ```
 
 # Data Model
+
+erDiagram
+STAFF_USER {
+string staff_user_id PK
+string full_name
+enum role
+}
+
+    CANDIDATE_PROFILE {
+        string candidate_id PK
+        string full_name
+        string email UK
+        string phone
+        string current_location
+        string linkedin_profile
+        string portfolio_website
+        file cv_resume_file
+        string expected_salary
+        string notice_period_availability
+        text tags_labels
+        text general_notes
+    }
+
+    JOB_OPENING {
+        string job_opening_id PK
+        string job_title
+        string seniority_level
+        string department_team
+        reference hiring_manager_id FK
+        reference assigned_recruiter_id FK
+        string employment_type
+        string location
+        text job_description
+        text required_skills
+        enum job_status
+        integer number_of_openings
+        date target_hire_date
+        string salary_range
+        string closing_reason
+    }
+
+    JOB_APPLICATION {
+        string application_id PK
+        reference candidate_id FK
+        reference job_opening_id FK
+        string source_of_application
+        date application_date
+        enum current_stage
+        enum application_status
+        reference assigned_recruiter_id FK
+        reference assigned_hiring_manager_id FK
+        date last_stage_update_date
+        string next_action
+        reference next_action_owner_id FK
+        string rejection_reason
+        string withdrawal_reason
+        string closure_reason
+        date decision_date
+        text final_note
+        reference decision_maker_id FK
+    }
+
+    OFFER {
+        string offer_id PK
+        reference application_id FK
+        enum offer_status
+        date extended_date
+        date response_date
+    }
+
+    INTERVIEW_RECORD {
+        string interview_record_id PK
+        reference candidate_id FK
+        reference application_id FK
+        enum interview_step
+        datetime interview_datetime
+        reference interviewer_id FK
+        enum interview_format
+        string location_meeting_link
+        enum interview_status
+        text notes
+    }
+
+    FEEDBACK {
+        string feedback_id PK
+        reference application_id FK
+        reference interview_record_id FK
+        reference author_id FK
+        enum feedback_stage
+        enum overall_recommendation
+        integer role_fit_rating
+        string strengths
+        string concerns
+        text comments
+        enum confidence_level
+        datetime submitted_at
+    }
+
+    COMMUNICATION_ENTRY {
+        string communication_entry_id PK
+        reference application_id FK
+        reference author_id FK
+        date entry_date
+        enum communication_type
+        string short_summary
+        boolean next_follow_up_needed
+        date follow_up_date
+    }
+
+    AUDIT_TRAIL_ENTRY {
+        string audit_trail_entry_id PK
+        string entity_changed
+        reference entity_record_id
+        string action_type
+        reference actor_id FK
+        datetime timestamp
+        text change_summary
+    }
+
+    STAFF_USER ||--o{ JOB_OPENING : hiring_manager
+    STAFF_USER ||--o{ JOB_OPENING : assigned_recruiter
+
+    CANDIDATE_PROFILE ||--o{ JOB_APPLICATION : submits
+    JOB_OPENING ||--o{ JOB_APPLICATION : receives
+    STAFF_USER ||--o{ JOB_APPLICATION : assigned_recruiter
+    STAFF_USER ||--o{ JOB_APPLICATION : assigned_hiring_manager
+    STAFF_USER ||--o{ JOB_APPLICATION : next_action_owner
+    STAFF_USER ||--o{ JOB_APPLICATION : decision_maker
+
+    JOB_APPLICATION ||--o| OFFER : has
+
+    CANDIDATE_PROFILE ||--o{ INTERVIEW_RECORD : attends
+    JOB_APPLICATION ||--o{ INTERVIEW_RECORD : includes
+    STAFF_USER ||--o{ INTERVIEW_RECORD : interviewer
+
+    JOB_APPLICATION ||--o{ FEEDBACK : collects
+    INTERVIEW_RECORD o|--o{ FEEDBACK : contextualizes
+    STAFF_USER ||--o{ FEEDBACK : authors
+
+    JOB_APPLICATION ||--o{ COMMUNICATION_ENTRY : logs
+    STAFF_USER ||--o{ COMMUNICATION_ENTRY : authors
+
+    STAFF_USER ||--o{ AUDIT_TRAIL_ENTRY : actor
+
+
+## ATS MVP High-Level System Design
+
+The ATS MVP has two system surfaces only: an **internal web app** for company staff and an **ATS-managed public careers page** for external candidates. The public surface is intentionally narrow: it supports open-job discovery, job details, application submission, and submission confirmation only. The internal surface is centered on six major modules: **Job Management**, **Candidate & Application Workspace**, **Pipeline & Next Action Board**, **Interview Scheduling & Feedback**, **Communication Logging**, and **Offer & Final Decision Handling**. This aligns with the approved MVP scope and excludes integrations, advanced scheduling, analytics, candidate portal features, and user administration.
+
+The shared data layer is organized around the core records defined in the sources: **Job Openings**, **Candidate Profiles**, **Job Applications**, **Interview Records & Feedback**, **Communication Timeline**, **Offer Records / Final Decisions**, and **Audit Trail**. Access is role- and scope-based: **HR Admin / Manager** has full coverage, **Recruiter** operates assigned jobs and applications, **Hiring Manager** provides review and decision input within owned jobs, **Interviewer** works only on assigned interviews, and **Candidate** interacts only with the public careers page.
+
+```mermaid
+flowchart LR
+    %% Actors
+    C[Candidate]
+    HR[HR Admin / Manager]
+    R[Recruiter]
+    HM[Hiring Manager]
+    IV[Interviewer]
+
+    %% Public surface
+    subgraph P["System boundary: Public Careers Page"]
+        P1[Job Listings & Job Details]
+        P2[Application Submission & Confirmation]
+    end
+
+    %% Internal surface
+    subgraph I["System boundary: Internal Web App"]
+        I1[Job Management]
+        I2[Candidate & Application Workspace]
+        I3[Pipeline & Next Action Board]
+        I4[Interview Scheduling & Feedback]
+        I5[Communication Logging]
+        I6[Offer & Final Decision Handling]
+    end
+
+    %% Data stores
+    subgraph D["Shared ATS Data Stores"]
+        D1[(Job Openings)]
+        D2[(Candidate Profiles)]
+        D3[(Job Applications)]
+        D4[(Interview Records & Feedback)]
+        D5[(Communication Timeline)]
+        D6[(Offer Records / Final Decisions)]
+        D7[(Audit Trail)]
+    end
+
+    %% Actor access mapping
+    C --> P1
+    C --> P2
+
+    HR --> I1
+    HR --> I2
+    HR --> I3
+    HR --> I6
+
+    R --> I2
+    R --> I3
+    R --> I4
+    R --> I5
+
+    HM --> I2
+    HM --> I4
+    HM -- decision input --> I6
+
+    IV --> I4
+
+    %% Core workflow paths
+    I1 -. publish open jobs .-> P1
+    P2 -. create candidate/application records .-> I2
+    I2 -. move through fixed pipeline .-> I3
+    I3 -. coordinate next steps .-> I4
+    I4 -. recommendations / feedback .-> I6
+
+    %% Module to store mapping
+    P1 --> D1
+    P2 --> D2
+    P2 --> D3
+
+    I1 <--> D1
+    I1 --> D7
+
+    I2 <--> D2
+    I2 <--> D3
+
+    I3 <--> D1
+    I3 <--> D3
+    I3 <--> D4
+
+    I4 <--> D4
+    I4 --> D7
+
+    I5 <--> D5
+    I5 --> D7
+
+    I6 <--> D3
+    I6 <--> D6
+    I6 --> D7
+```
+
+
+
+flowchart LR
+%% Actors
+C[Candidate]
+HR[HR Admin / Manager]
+R[Recruiter]
+HM[Hiring Manager]
+IV[Interviewer]
+
+    %% Public surface
+    subgraph P["System boundary: Public Careers Page"]
+        P1[Job Listings & Job Details]
+        P2[Application Submission & Confirmation]
+    end
+
+    %% Internal surface
+    subgraph I["System boundary: Internal Web App"]
+        I1[Job Management]
+        I2[Candidate & Application Workspace]
+        I3[Pipeline & Next Action Board]
+        I4[Interview Scheduling & Feedback]
+        I5[Communication Logging]
+        I6[Offer & Final Decision Handling]
+    end
+
+    %% Data stores
+    subgraph D["Shared ATS Data Stores"]
+        D1[(Job Openings)]
+        D2[(Candidate Profiles)]
+        D3[(Job Applications)]
+        D4[(Interview Records & Feedback)]
+        D5[(Communication Timeline)]
+        D6[(Offer Records / Final Decisions)]
+        D7[(Audit Trail)]
+    end
+
+    %% Actor access mapping
+    C --> P1
+    C --> P2
+
+    HR --> I1
+    HR --> I2
+    HR --> I3
+    HR --> I6
+
+    R --> I2
+    R --> I3
+    R --> I4
+    R --> I5
+
+    HM --> I2
+    HM --> I4
+    HM -- decision input --> I6
+
+    IV --> I4
+
+    %% Core workflow paths
+    I1 -. publish open jobs .-> P1
+    P2 -. create candidate/application records .-> I2
+    I2 -. move through fixed pipeline .-> I3
+    I3 -. coordinate next steps .-> I4
+    I4 -. recommendations / feedback .-> I6
+
+    %% Module to store mapping
+    P1 --> D1
+    P2 --> D2
+    P2 --> D3
+
+    I1 <--> D1
+    I1 --> D7
+
+    I2 <--> D2
+    I2 <--> D3
+
+    I3 <--> D1
+    I3 <--> D3
+    I3 <--> D4
+
+    I4 <--> D4
+    I4 --> D7
+
+    I5 <--> D5
+    I5 --> D7
+
+    I6 <--> D3
+    I6 <--> D6
+    I6 --> D7
+
+
+
+# C4 Diagram 
+
+C4Container
+title ATS MVP - Hiring Pipeline and Stage Tracking
+
+Person(recruiter, "Recruiter", "Reviews applications, moves candidates through allowed stage transitions, schedules interviews, and records notes.")
+Person(hiring_manager, "Hiring Manager", "Reviews candidates and provides decision input within owned jobs. Does not directly change stages or statuses.")
+Person(hr_admin, "HR Admin / Manager", "Has full access to jobs and applications. Records final status and can override stage changes.")
+Person(interviewer, "Interviewer", "Accesses assigned interviews only, sees candidate CV and relevant notes, and submits feedback.")
+
+System_Boundary(ats, "ATS MVP - Internal System") {
+Container_Boundary(workflow, "Hiring Pipeline Operations Boundary") {
+Container(internal_web, "ATS Internal Web App", "Web application", "Internal workspace for application review, stage tracking, interview tracking, feedback, communication logging, and closure handling.")
+Container(pipeline_service, "Pipeline and Stage Tracking Service", "Application service", "Enforces one fixed pipeline: Applied, HR / Recruiter Screen, Hiring Manager Review, Interview, Offer. Manages current stage, application status, next action owner, and shared notes.")
+Container(interview_service, "Interview Tracking and Feedback Service", "Application service", "Creates interview records inside the Interview stage and stores structured feedback and recommendations.")
+Container(comm_service, "Communication and Follow-up Service", "Application service", "Stores communication log entries and follow-up tracking for each application.")
+Container(decision_service, "Decision and Closure Service", "Application service", "Records final hiring decisions, closure reasons, decision date, final note, and offer-related outcome handling.")
+}
+
+    Container_Boundary(control, "Role and Scope Control Boundary") {
+        Container(access_control, "Access and Scope Control", "Application service", "Enforces role-based permissions and scope-based visibility for jobs, applications, interviews, notes, and feedback.")
+        Container(audit_service, "Audit Trail Service", "Application service", "Records workflow-critical system and data changes for traceability.")
+    }
+
+    ContainerDb(hiring_store, "Hiring Operations Store", "Relational data store", "Stores jobs, candidates, applications, current stage, application status, next action owner, shared notes, interviews, feedback, communication entries, follow-up data, and offer data.")
+    ContainerDb(audit_store, "Audit Trail Store", "Append-only data store", "Stores entity changed, action type, actor, timestamp, and change summary.")
+}
+
+Rel(recruiter, internal_web, "Reviews applications and moves candidates through allowed stages")
+Rel(hiring_manager, internal_web, "Reviews candidates and provides proceed, reject, or hire input only")
+Rel(hr_admin, internal_web, "Views all jobs and applications, records final status, and overrides stage changes")
+Rel(interviewer, internal_web, "Views assigned interviews only and submits feedback")
+
+Rel(internal_web, access_control, "Authorizes actions by role and scope")
+Rel(internal_web, pipeline_service, "Reads and updates stage, status, next action owner, and notes")
+Rel(internal_web, interview_service, "Creates interview records and submits feedback")
+Rel(internal_web, comm_service, "Logs communication entries and follow-up tracking")
+Rel(internal_web, decision_service, "Records final decisions and closure handling")
+
+Rel(pipeline_service, access_control, "Validates allowed stage transitions and scope")
+Rel(interview_service, access_control, "Validates interview and candidate-context visibility")
+Rel(decision_service, access_control, "Validates decision authority and override rights")
+
+Rel(pipeline_service, hiring_store, "Stores pipeline stage, application status, next action owner, and notes")
+Rel(interview_service, hiring_store, "Stores interview records and feedback history")
+Rel(comm_service, hiring_store, "Stores communication log and follow-up data")
+Rel(decision_service, hiring_store, "Stores final status and closure data")
+Rel(access_control, hiring_store, "Reads job and application scope context")
+
+Rel(pipeline_service, audit_service, "Logs stage and status changes")
+Rel(interview_service, audit_service, "Logs interview and feedback changes")
+Rel(comm_service, audit_service, "Logs follow-up changes")
+Rel(decision_service, audit_service, "Logs decision and closure changes")
+Rel(audit_service, audit_store, "Stores audit entries")
